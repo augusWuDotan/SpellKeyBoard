@@ -1368,7 +1368,6 @@ public class SpellKeyBoard extends View {
                     public void run() {
                         if(answerList.size()!=answerNonSpacelength)return;
                         listener.answerError(result);
-                        errorEndAnswer();
                     }
                 }, animateErrorDelay);
             }
