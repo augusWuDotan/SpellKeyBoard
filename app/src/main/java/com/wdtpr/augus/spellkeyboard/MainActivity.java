@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements SpellKeyBoardList
     @Override
     public void answerError(String s) {
         Toast.makeText(this, "錯誤資訊：" + s, Toast.LENGTH_SHORT).show();
+        mSpellKeyBoard.errorEndAnswer();
     }
 
     @Override
