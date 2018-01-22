@@ -64,6 +64,7 @@ public class SpellKeyBoard extends View {
     private int maxAnimCode = 1000;//最大值
     private int minAnimCode = 0;//最小值
     private int animateDelay = 2000;//作答結束[正確] 動畫延遲執行時間 預設2000[2秒]
+    private int animateErrorDelay = 1000;//作答結束[正確] 動畫延遲執行時間 預設1000[2秒]
 
     /**
      * 傳入版型 [1,2]
@@ -343,6 +344,7 @@ public class SpellKeyBoard extends View {
         int KeyboardItemBackOneRID = mTypedArray.getResourceId(R.styleable.SpellKeyBoard_KeyboardItemBackOne, R.drawable.keyboard_back_normal);
         int KeyboardItemBackTwoRID = mTypedArray.getResourceId(R.styleable.SpellKeyBoard_KeyboardItemBackTwo, R.drawable.keyboard_back_press);
         animateDelay = mTypedArray.getInt(R.styleable.SpellKeyBoard_answerCorrectAnimateDelay, 2000);
+        animateErrorDelay = mTypedArray.getInt(R.styleable.SpellKeyBoard_answerCorrectAnimateDelay, 1000);
         KeyBoardItemSpaceRL = mTypedArray.getDimension(R.styleable.SpellKeyBoard_KeyboardItemPadding, 10);
         KeyBoardItemSpaceTB = mTypedArray.getDimension(R.styleable.SpellKeyBoard_KeyboardItemPadding, 10);
         fillGridItemSpace = mTypedArray.getDimension(R.styleable.SpellKeyBoard_fillGridPaddingRL, 10);
@@ -401,6 +403,14 @@ public class SpellKeyBoard extends View {
 
     public void setKeyBoardItemPadding(int keyBoardItemPadding) {
         KeyBoardItemPadding = keyBoardItemPadding;
+    }
+
+    public void setAnimateDelay(int animateDelay) {
+        this.animateDelay = animateDelay;
+    }
+
+    public void setAnimateErrorDelay(int animateErrorDelay) {
+        this.animateErrorDelay = animateErrorDelay;
     }
 
     /**
@@ -1322,21 +1332,47 @@ public class SpellKeyBoard extends View {
          */
 //        LogUtils.d("answer list size :"+answerList.size());
 //        LogUtils.d("answerNonSpacelength :"+answerNonSpacelength);
-        if (answerList.size() == answerNonSpacelength && confirmCorrectAnswer()) {
+        if (answerList.size() == answerNonSpacelength) {
             /**
              * 鎖
              */
             isLock = true;
-            //測試用 預設延遲三秒執行
-            postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    endAnswer();
+            /**
+             * 組合答案
+             */
+            StringBuffer b = new StringBuffer();
+            for (fillGrid f : fillGrids) {
+                if (!f.getAction().equals(fillGrid.Action_Space)) {
+                    b.append(keyWords.get(f.getAnswerIndex()).getContent());
+                } else {
+                    b.append(" ");
                 }
-            }, animateDelay);
-
+            }
+            /**
+             * 延遲動作
+             */
+            if(confirmCorrectAnswer(b.toString())){
+                //正確
+                postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        endAnswer();
+                    }
+                }, animateDelay);
+            }
+            else{
+                final String result = b.toString();
+                //錯誤
+                postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(answerList.size()!=answerNonSpacelength)return;
+                        listener.answerError(result);
+                        errorEndAnswer();
+                    }
+                }, animateErrorDelay);
+            }
         }
-
     }
 
     /**
@@ -2073,15 +2109,8 @@ public class SpellKeyBoard extends View {
      * 檢查答題是否正確
      * true 正確 false 錯誤
      */
-    private boolean confirmCorrectAnswer() {
-        StringBuffer b = new StringBuffer();
-        for (fillGrid f : fillGrids) {
-            if (!f.getAction().equals(fillGrid.Action_Space)) {
-                b.append(keyWords.get(f.getAnswerIndex()).getContent());
-            } else {
-                b.append(" ");
-            }
-        }
+    private boolean confirmCorrectAnswer(String b) {
+
         LogUtils.d("答案: " + b.toString());
         /**
          * 檢查答案是否正確
@@ -2090,7 +2119,6 @@ public class SpellKeyBoard extends View {
             listener.answerCorrect(b.toString());
             return true;
         } else {
-            listener.answerError(b.toString());
             isLock = false;
             return false;
         }
@@ -2150,6 +2178,60 @@ public class SpellKeyBoard extends View {
          */
         isClear = true;
         isFinish = true;
+        fillGridUseNextIndex = 0;
+        KeyBoardItemPreviousIndex = -1;
+        answerList.clear();
+    }
+
+    /**
+     * 結束答題[落幕動畫]
+     */
+    public void errorEndAnswer() {
+        /**
+         * 檢查範圍 如果填寫的格子right 超過(最大X座標-答案區左右間距)
+         * 變更所有 的 答案座標 x軸 偏移量 [填寫格子的 原始範圍 right x座標] - [最大X座標-答案區左右間距]]
+         */
+        LogUtils.d("MRL:" + fillGridMRL);
+        if (fillGrids.get(0).getmDrawRect().left < (fillGridMRL)) {
+            /**
+             * x偏移量 fillGridXOffset
+             * 方向 fillGridXDirection true 向右 +
+             */
+            float x = new BigDecimal((float) fillGridMRL - (float) fillGrids.get(0).getmDrawRect().left).setScale(0, BigDecimal.ROUND_HALF_UP).floatValue();
+            LogUtils.d("需求位移比對 rect:" + fillGrids.get(0).getmDrawRect());
+            LogUtils.d("add X需求 偏移量:" + (int) x);
+            fillGridXDirection = false;
+            //
+            Rect endRect = new Rect(fillGrids.get(0).getmDrawRect().left + (int) x, fillGrids.get(0).getmDrawRect().top,
+                    fillGrids.get(0).getmDrawRect().right + (int) x, fillGrids.get(0).getmDrawRect().bottom);
+            LogUtils.d("重新建立 rect:" + endRect);
+        }
+
+
+        /**
+         * 設定動畫判斷參數
+         * Use = false
+         * isAnim = true
+         * isClear = true
+         */
+        for (fillGrid f : fillGrids) {
+            f.setUse(false);
+            f.setAnim(true);
+            f.setClear(true);
+            f.setAnimStart(false);
+            f.setAnimFinished(false);
+            f.setPercentage(0f);
+            f.setLocusStartRect(f.getmDrawRect());
+            f.setLocusEndRect(keyWords.get(f.getAnswerIndex()).getmDrawRect());
+        }
+        /**
+         * 全部清除動畫
+         */
+        initAnimatefillGridsClearAll(animAllClearTime);
+        /**
+         * 資料初始化
+         */
+        isClear = true;
         fillGridUseNextIndex = 0;
         KeyBoardItemPreviousIndex = -1;
         answerList.clear();

@@ -25,6 +25,8 @@
 
         <!--作答結束[正確] 動畫延遲時間 預設2000毫秒-->
         <attr name="answerCorrectAnimateDelay" format="integer" />
+        <!--作答結束[錯誤] 答案判斷時間 預設1000毫秒-->
+        <attr name="answerErrorAnimateDelay" format="integer" />
 
     </declare-styleable>
 
