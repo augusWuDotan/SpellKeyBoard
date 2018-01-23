@@ -1300,10 +1300,6 @@ public class SpellKeyBoard extends View {
 //        LogUtils.d("answerNonSpacelength :"+answerNonSpacelength);
         if (answerList.size() == answerNonSpacelength) {
             /**
-             * 鎖
-             */
-            isLock = true;
-            /**
              * 組合答案
              */
             StringBuffer b = new StringBuffer();
@@ -1321,6 +1317,10 @@ public class SpellKeyBoard extends View {
             postDelayed(new Runnable() {
                 @Override
                 public void run() {
+                    /**
+                     * 鎖
+                     */
+                    isLock = true;
                     checkAnwser(result);
                 }
             }, checkAnswerDelay);

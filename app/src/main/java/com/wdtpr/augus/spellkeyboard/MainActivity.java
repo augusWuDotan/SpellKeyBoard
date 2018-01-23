@@ -33,11 +33,11 @@ public class MainActivity extends AppCompatActivity implements SpellKeyBoardList
          */
         mSpellKeyBoard.setKeyBoardItemPadding(2);
         /**
-         * 設定答案作答完畢 動畫延遲幾秒
+         * 設定答案作答完畢開始執行動畫[clear]
          */
         mSpellKeyBoard.setAnimateDelay(3000);
         /**
-         * 設定答案錯誤多久後判斷
+         * 設定答案錯誤多久後執行動畫[clear]
          */
         mSpellKeyBoard.setAnimateErrorDelay(1000);
 
