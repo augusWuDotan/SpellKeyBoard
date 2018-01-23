@@ -65,6 +65,7 @@ public class SpellKeyBoard extends View {
     private int minAnimCode = 0;//最小值
     private int animateDelay = 2000;//作答結束[正確] 動畫延遲執行時間 預設2000[2秒]
     private int animateErrorDelay = 1000;//作答結束[正確] 動畫延遲執行時間 預設1000[2秒]
+    private int checkAnswerDelay = 1000;//作答結束[正確] 動畫延遲執行時間 預設1000[1秒]
 
     /**
      * 傳入版型 [1,2]
@@ -345,6 +346,7 @@ public class SpellKeyBoard extends View {
         int KeyboardItemBackTwoRID = mTypedArray.getResourceId(R.styleable.SpellKeyBoard_KeyboardItemBackTwo, R.drawable.keyboard_back_press);
         animateDelay = mTypedArray.getInt(R.styleable.SpellKeyBoard_answerCorrectAnimateDelay, 2000);
         animateErrorDelay = mTypedArray.getInt(R.styleable.SpellKeyBoard_answerCorrectAnimateDelay, 1000);
+        checkAnswerDelay = mTypedArray.getInt(R.styleable.SpellKeyBoard_checkAnimateDelay, 1000);
         KeyBoardItemSpaceRL = mTypedArray.getDimension(R.styleable.SpellKeyBoard_KeyboardItemPadding, 10);
         KeyBoardItemSpaceTB = mTypedArray.getDimension(R.styleable.SpellKeyBoard_KeyboardItemPadding, 10);
         fillGridItemSpace = mTypedArray.getDimension(R.styleable.SpellKeyBoard_fillGridPaddingRL, 10);
@@ -411,6 +413,10 @@ public class SpellKeyBoard extends View {
 
     public void setAnimateErrorDelay(int animateErrorDelay) {
         this.animateErrorDelay = animateErrorDelay;
+    }
+
+    public void setCheckAnswerDelay(int checkAnswerDelay) {
+        this.checkAnswerDelay = checkAnswerDelay;
     }
 
     /**
@@ -941,7 +947,7 @@ public class SpellKeyBoard extends View {
      * 鍵盤區 KeyBoardArea touch
      */
     private void touchKeyBoardArea(MotionEvent event) {
-        if(isLock) return;
+        if (isLock) return;
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -970,7 +976,7 @@ public class SpellKeyBoard extends View {
          * isMove  = false return
          */
         if (keyBoardRect.contains((int) touchX, (int) touchY)) return;
-        if(!isMove) return;
+        if (!isMove) return;
         /**
          *
          */
@@ -1075,46 +1081,6 @@ public class SpellKeyBoard extends View {
         }
 
 
-    }
-
-    /**
-     *
-     */
-    private void moveFillGrid() {
-        mFillGridCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        //
-        int index = 0;
-        for (fillGrid fillGrid : fillGrids) {
-            /**
-             * 上答案格底圖
-             */
-            if (!fillGrid.getContent().equals(" ")) {
-                LogUtils.d("繪製 答案格 底圖");
-                mFillGridCanvas.drawBitmap(mType == 1 ? FillGridItemNormalType1 : FillGridItemNormalType2, null, fillGrid.getmDrawRect(), mFillGridPaint);
-            }
-            LogUtils.d(" isUse " + fillGrid.isUse() + ", isAnim" + fillGrid.isAnim() + ", isAdd" + fillGrid.isAdd());
-            /**
-             * 判斷 isUse 是使用過的 或是 沒有使用過的
-             */
-
-            if (fillGrid.isUse() && !fillGrid.isAnim() && !fillGrid.isAdd()) {
-                LogUtils.d("答案格 使用中");
-                Rect r = new Rect(fillGrid.getAnswerRect().left + KeyBoardItemPadding, fillGrid.getAnswerRect().top + KeyBoardItemPadding
-                        , fillGrid.getAnswerRect().right - KeyBoardItemPadding, fillGrid.getAnswerRect().bottom - KeyBoardItemPadding);
-                mFillGridCanvas.drawBitmap(KeyBoardItemTouch, null, r, mFillGridPaint);
-                int textX = (int) (fillGrid.getAnswerRect().left + KeyBoardItemW / 2);
-                int textY = (int) (fillGrid.getAnswerRect().top + (KeyBoardItemW / 2 - ((mTextPaint.descent() + mTextPaint.ascent()))) - 0.5f);
-                LogUtils.d(" textX " + textX + ", textY" + textY);
-                mFillGridCanvas.drawText(keyWords.get(fillGrid.getAnswerIndex()).getContent(), textX, textY, mTextPaint);
-
-                //最重要的
-                fillGrid.setMove(true);//沒加上 會重疊
-            }
-            index++;
-        }
-
-        //鍵盤
-        drawKeyboard();
     }
 
     /**
@@ -1349,28 +1315,44 @@ public class SpellKeyBoard extends View {
                 }
             }
             /**
-             * 延遲動作
+             * 延遲判斷答案動作
              */
-            if(confirmCorrectAnswer(b.toString())){
-                //正確
-                postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        endAnswer();
-                    }
-                }, animateDelay);
-            }
-            else{
-                final String result = b.toString();
-                //錯誤
-                postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(answerList.size()!=answerNonSpacelength)return;
-                        listener.answerError(result);
-                    }
-                }, animateErrorDelay);
-            }
+            final String result = b.toString();
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    checkAnwser(result);
+                }
+            }, checkAnswerDelay);
+        }
+    }
+
+    /**
+     * 檢查答案
+     */
+    private void checkAnwser(String result) {
+        /**
+         * 延遲時間
+         * animateDelay 正確的動畫時間
+         * animateErrorDelay 錯誤的動畫時間
+         */
+        if (confirmCorrectAnswer(result)) {
+            //正確
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    endAnswer();
+                }
+            }, animateDelay);
+        } else {
+
+            //錯誤
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    errorEndAnswer();
+                }
+            }, animateErrorDelay);
         }
     }
 
@@ -2115,9 +2097,10 @@ public class SpellKeyBoard extends View {
          * 檢查答案是否正確
          */
         if (b.toString().equals(answer)) {
-            listener.answerCorrect(b.toString());
+            listener.answerCorrect(b);
             return true;
         } else {
+            listener.answerError(b);
             isLock = false;
             return false;
         }
@@ -2186,6 +2169,10 @@ public class SpellKeyBoard extends View {
      * 結束答題[落幕動畫]
      */
     public void errorEndAnswer() {
+        /**
+         * 中途取消 答案數量不夠 不執行跳出
+         */
+        if (answerList.size() != answerNonSpacelength) return;
         /**
          * 檢查範圍 如果填寫的格子right 超過(最大X座標-答案區左右間距)
          * 變更所有 的 答案座標 x軸 偏移量 [填寫格子的 原始範圍 right x座標] - [最大X座標-答案區左右間距]]
@@ -2266,7 +2253,7 @@ public class SpellKeyBoard extends View {
                 //
                 listener.update();
             }
-        },500);
+        }, 500);
 
     }
 
