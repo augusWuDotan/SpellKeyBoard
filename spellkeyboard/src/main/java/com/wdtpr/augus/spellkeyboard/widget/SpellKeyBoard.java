@@ -1312,14 +1312,18 @@ public class SpellKeyBoard extends View {
             }
             /**
              * 延遲判斷答案動作
+             *
              */
+
             final String result = b.toString();
             postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     /**
                      * 鎖
+                     * 中途取消 答案數量不夠 不執行跳出
                      */
+                    if (answerList.size() != answerNonSpacelength) return;
                     isLock = true;
                     checkAnwser(result);
                 }
@@ -1331,6 +1335,7 @@ public class SpellKeyBoard extends View {
      * 檢查答案
      */
     private void checkAnwser(String result) {
+
         /**
          * 延遲時間
          * animateDelay 正確的動畫時間
@@ -2110,10 +2115,7 @@ public class SpellKeyBoard extends View {
      * 結束答題[落幕動畫]
      */
     public void endAnswer() {
-        /**
-         * 中途取消 答案數量不夠 不執行跳出
-         */
-        if (answerList.size() != answerNonSpacelength) return;
+
         /**
          * 檢查範圍 如果填寫的格子right 超過(最大X座標-答案區左右間距)
          * 變更所有 的 答案座標 x軸 偏移量 [填寫格子的 原始範圍 right x座標] - [最大X座標-答案區左右間距]]
@@ -2169,10 +2171,7 @@ public class SpellKeyBoard extends View {
      * 結束答題[落幕動畫]
      */
     public void errorEndAnswer() {
-        /**
-         * 中途取消 答案數量不夠 不執行跳出
-         */
-        if (answerList.size() != answerNonSpacelength) return;
+
         /**
          * 檢查範圍 如果填寫的格子right 超過(最大X座標-答案區左右間距)
          * 變更所有 的 答案座標 x軸 偏移量 [填寫格子的 原始範圍 right x座標] - [最大X座標-答案區左右間距]]

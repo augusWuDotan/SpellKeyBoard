@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements SpellKeyBoardList
 
     @Override
     public void alreadyAdd() {
-        Toast.makeText(this, "新增", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "新增", Toast.LENGTH_SHORT).show();
     }
 
     @Override
