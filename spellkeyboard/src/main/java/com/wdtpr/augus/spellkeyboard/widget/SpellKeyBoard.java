@@ -1719,10 +1719,6 @@ public class SpellKeyBoard extends View {
                 super.onAnimationEnd(animation);
             }
 
-            @Override
-            public void onAnimationEnd(Animator animation, boolean isReverse) {
-                LogUtils.d("onAnimationEnd");
-            }
         });
 
         animator1.start();
@@ -1792,10 +1788,6 @@ public class SpellKeyBoard extends View {
                 super.onAnimationEnd(animation);
             }
 
-            @Override
-            public void onAnimationEnd(Animator animation, boolean isReverse) {
-                LogUtils.d("onAnimationEnd");
-            }
         });
 
         animator2.start();
