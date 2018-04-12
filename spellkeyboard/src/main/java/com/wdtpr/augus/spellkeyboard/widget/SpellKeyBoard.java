@@ -26,6 +26,7 @@ import com.wdtpr.augus.spellkeyboard.model.bean.fillGrid;
 import com.wdtpr.augus.spellkeyboard.model.bean.keyboard;
 import com.wdtpr.augus.spellkeyboard.model.listener.SpellKeyBoardListener;
 import com.wdtpr.augus.spellkeyboard.utils.BitmapUtils;
+import com.wdtpr.augus.spellkeyboard.utils.ListUtils;
 import com.wdtpr.augus.spellkeyboard.utils.LogUtils;
 import com.wdtpr.augus.spellkeyboard.utils.TextUtils;
 import com.wdtpr.augus.spellkeyboard.utils.source.FillGridModel;
@@ -992,6 +993,7 @@ public class SpellKeyBoard extends View {
                     for (fillGrid f : fillGrids) {
                         if (f.isAnim() && !f.isAnimFinished()) {
                             LogUtils.d("還有還沒結束 :" + f);
+//                            isOK = false;//
                         }
                     }
                     if (isOK) isLock = false;
@@ -1132,6 +1134,7 @@ public class SpellKeyBoard extends View {
      * touch down
      */
     private void touchDownKeyBoardArea(MotionEvent event) {
+
         /**
          * 事件參數初始
          */
@@ -1205,6 +1208,7 @@ public class SpellKeyBoard extends View {
      * @param keyIndex 需要變動的 keyindex
      */
     private void addAnswerMemory(int keyIndex) {
+
         /**
          * 呼叫點擊鍵盤一般按鈕
          */
@@ -1299,6 +1303,15 @@ public class SpellKeyBoard extends View {
 //        LogUtils.d("answer list size :"+answerList.size());
 //        LogUtils.d("answerNonSpacelength :"+answerNonSpacelength);
         if (answerList.size() == answerNonSpacelength) {
+            //
+            postDelayed(checkAnwserRunnable, checkAnswerDelay);
+        }
+    }
+
+    private Runnable checkAnwserRunnable = new Runnable() {
+        @Override
+        public void run() {
+            LogUtils.d("do checkAnwserRunnable");
             /**
              * 組合答案
              */
@@ -1316,26 +1329,23 @@ public class SpellKeyBoard extends View {
              */
 
             final String result = b.toString();
-            postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    /**
-                     * 鎖
-                     * 中途取消 答案數量不夠 不執行跳出
-                     */
-                    if (answerList.size() != answerNonSpacelength) return;
-                    isLock = true;
-                    checkAnwser(result);
-                }
-            }, checkAnswerDelay);
+            /**
+             * 鎖
+             * 中途取消 答案數量不夠 不執行跳出
+             */
+            if (answerList.size() != answerNonSpacelength) return;
+            //
+            isLock = true;
+            //
+            checkAnwser(result);
+
         }
-    }
+    };
 
     /**
      * 檢查答案
      */
     private void checkAnwser(String result) {
-
         /**
          * 延遲時間
          * animateDelay 正確的動畫時間
@@ -1355,6 +1365,7 @@ public class SpellKeyBoard extends View {
             postDelayed(new Runnable() {
                 @Override
                 public void run() {
+
                     errorEndAnswer();
                 }
             }, animateErrorDelay);
@@ -1367,6 +1378,7 @@ public class SpellKeyBoard extends View {
      * @param keyIndex 需要變動的 keyindex
      */
     private void removeAnswerMemory(int keyIndex) {
+        if(ListUtils.isEmpty(fillGrids))return;
         /**
          * 呼叫點擊鍵盤back按鈕
          */
@@ -1456,6 +1468,8 @@ public class SpellKeyBoard extends View {
      * back + 動畫
      */
     private void KeyboardBack() {
+        //刪除現有的runnable
+        if (answerList != null) removeCallbacks(checkAnwserRunnable);
         /**
          * 更改狀態回來
          */
@@ -1478,6 +1492,8 @@ public class SpellKeyBoard extends View {
          */
         if (answerList == null) answerList = new ArrayList<>();
         if (answerList.size() < answerNonSpacelength) {
+            //刪除現有的delayAction
+            removeCallbacks(checkAnwserRunnable);
             /**
              * 增加紀錄
              */
@@ -2098,7 +2114,7 @@ public class SpellKeyBoard extends View {
             return true;
         } else {
             listener.answerError(b);
-            isLock = false;
+//            isLock = false;
             return false;
         }
     }
@@ -2107,6 +2123,7 @@ public class SpellKeyBoard extends View {
      * 結束答題[落幕動畫]
      */
     public void endAnswer() {
+        if (answerList.size() != answerNonSpacelength) return;
 
         /**
          * 檢查範圍 如果填寫的格子right 超過(最大X座標-答案區左右間距)
@@ -2163,6 +2180,11 @@ public class SpellKeyBoard extends View {
      * 結束答題[落幕動畫]
      */
     public void errorEndAnswer() {
+
+        //null
+        if (ListUtils.isEmpty(fillGrids)) {
+            return;
+        }
 
         /**
          * 檢查範圍 如果填寫的格子right 超過(最大X座標-答案區左右間距)

@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity implements SpellKeyBoardList
 
         mSpellKeyBoard = (SpellKeyBoard) findViewById(R.id.mSpellKeyBoard);
         //設定答案
-        mSpellKeyBoard.setAnswer("fine");
+        mSpellKeyBoard.setAnswer("aaaaaaaaa");
         /**
          * set 按鍵數
          * [count]<24 && [count]>=12 (需要3的倍數) ex 12,15,18,21
