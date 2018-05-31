@@ -94,7 +94,6 @@ public class SpellKeyBoard extends View {
     private WorkFilterModel workFilterModel;
     private FillGridModel fillGridModel;
 
-
     /**
      * 答題 與 鍵盤區域比例
      */
@@ -836,7 +835,11 @@ public class SpellKeyBoard extends View {
             /**
              * 紀錄座標
              */
-            touchFillGridArea(event);
+            try {
+                touchFillGridArea(event);
+            } catch (Exception e) {
+                listener.ShowError("TouchFillGridArea function:" + e.getMessage());
+            }
         }
         return true;
     }
@@ -971,11 +974,12 @@ public class SpellKeyBoard extends View {
     /**
      * 答案區 touch 事件
      */
-    private void touchFillGridArea(MotionEvent event) {
+    private void touchFillGridArea(MotionEvent event) throws Exception {
         /**
          * 判斷前先防呆 如果down落點 在keyboardRect return
          * isMove  = false return
          */
+        if (ListUtils.isEmpty(fillGrids)) return;
         if (keyBoardRect.contains((int) touchX, (int) touchY)) return;
         if (!isMove) return;
         /**
@@ -1207,8 +1211,8 @@ public class SpellKeyBoard extends View {
      *
      * @param keyIndex 需要變動的 keyindex
      */
-    private void addAnswerMemory(int keyIndex) {
-
+    private void addAnswerMemory(int keyIndex) throws Exception {
+        if (ListUtils.isEmpty(fillGrids)) return;
         /**
          * 呼叫點擊鍵盤一般按鈕
          */
@@ -1356,7 +1360,11 @@ public class SpellKeyBoard extends View {
             postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    endAnswer();
+                    try {
+                        endAnswer();
+                    } catch (Exception e) {
+                        listener.ShowError("EndAnswer function:" + e.getMessage());
+                    }
                 }
             }, animateDelay);
         } else {
@@ -1365,8 +1373,11 @@ public class SpellKeyBoard extends View {
             postDelayed(new Runnable() {
                 @Override
                 public void run() {
-
-                    errorEndAnswer();
+                    try {
+                        errorEndAnswer();
+                    } catch (Exception e) {
+                        listener.ShowError("ErrorEndAnswer function:" + e.getMessage());
+                    }
                 }
             }, animateErrorDelay);
         }
@@ -1378,7 +1389,7 @@ public class SpellKeyBoard extends View {
      * @param keyIndex 需要變動的 keyindex
      */
     private void removeAnswerMemory(int keyIndex) {
-        if(ListUtils.isEmpty(fillGrids))return;
+        if (ListUtils.isEmpty(fillGrids)) return;
         /**
          * 呼叫點擊鍵盤back按鈕
          */
@@ -1497,7 +1508,11 @@ public class SpellKeyBoard extends View {
             /**
              * 增加紀錄
              */
-            addAnswerMemory(touchIndex);
+            try {
+                addAnswerMemory(touchIndex);
+            } catch (Exception e) {
+                listener.ShowError("addAnswerMemory function: " + e.getMessage());
+            }
         } else {
             isAdd = false;//
         }
@@ -1773,7 +1788,12 @@ public class SpellKeyBoard extends View {
                 /**
                  * 繪製 答案格 偏移
                  */
-                fillGridItemClearAllAnim(mFillGridCanvas, fillGridXOffset, (float) value / (float) maxAnimCode);
+                try {
+                    fillGridItemClearAllAnim(mFillGridCanvas, fillGridXOffset, (float) value / (float) maxAnimCode);
+                } catch (Exception e) {
+                    listener.ShowError("fillGridItemClearAllAnim function: " + e.getMessage());
+                }
+
                 /**
                  * 刷新
                  */
@@ -1796,7 +1816,13 @@ public class SpellKeyBoard extends View {
                 mAnimPaint.setAlpha(255);
                 fillGrids = fillGridModel.setFillGridItemSizeAndDraw(answer, mFillGridCanvas, mFillGridPaint, mType, FillGridItemNormalType1,
                         FillGridItemNormalType2, fillGridMRL, fillGridItemW, fillGridItemSpace, fillGridMTB, fillGridItemH, 0);
-                fillGridItemClearAllAnim(mFillGridCanvas, 0, 1);
+                //
+                try {
+                    fillGridItemClearAllAnim(mFillGridCanvas, 0, 1);
+                } catch (Exception e) {
+                    listener.ShowError("fillGridItemClearAllAnim function: " + e.getMessage());
+                }
+
                 LogUtils.d("清除動畫釋放");
                 animation.cancel();//釋放
                 LogUtils.d("重新刷新1");
@@ -2029,7 +2055,10 @@ public class SpellKeyBoard extends View {
     /**
      * 清除答案全體
      */
-    private void fillGridItemClearAllAnim(Canvas canvas, float fillGridXOffset, float percentage) {
+    private void fillGridItemClearAllAnim(Canvas canvas, float fillGridXOffset, float percentage) throws Exception {
+        //防呆
+        if (ListUtils.isEmpty(fillGrids)) return;
+        //透明底層
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
         /**
@@ -2122,9 +2151,10 @@ public class SpellKeyBoard extends View {
     /**
      * 結束答題[落幕動畫]
      */
-    public void endAnswer() {
-        if (answerList.size() != answerNonSpacelength) return;
-
+    public void endAnswer() throws Exception {
+        if (ListUtils.isEmpty(answerList)) return;//防呆 避免資料為空 還在處理
+        //
+        if (answerList.size() != answerNonSpacelength) return;//現在的 答案長度 不等於
         /**
          * 檢查範圍 如果填寫的格子right 超過(最大X座標-答案區左右間距)
          * 變更所有 的 答案座標 x軸 偏移量 [填寫格子的 原始範圍 right x座標] - [最大X座標-答案區左右間距]]
@@ -2179,7 +2209,7 @@ public class SpellKeyBoard extends View {
     /**
      * 結束答題[落幕動畫]
      */
-    public void errorEndAnswer() {
+    public void errorEndAnswer() throws Exception {
 
         //null
         if (ListUtils.isEmpty(fillGrids)) {

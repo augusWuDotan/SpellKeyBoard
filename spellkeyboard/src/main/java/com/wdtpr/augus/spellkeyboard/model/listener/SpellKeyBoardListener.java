@@ -49,4 +49,9 @@ public interface SpellKeyBoardListener {
      * 答題正確 clear內容動畫結束
      */
     void answerCorrectAnimFinish();
+
+    /**
+     * ERROR
+     */
+    void ShowError(String error);
 }

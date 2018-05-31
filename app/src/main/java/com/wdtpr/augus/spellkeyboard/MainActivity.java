@@ -91,4 +91,9 @@ public class MainActivity extends AppCompatActivity implements SpellKeyBoardList
     public void answerCorrectAnimFinish() {
         Toast.makeText(this, "動畫結束", Toast.LENGTH_SHORT).show();
     }
+
+    @Override
+    public void ShowError(String error) {
+        Toast.makeText(this, "錯誤訊息:"+error, Toast.LENGTH_SHORT).show();
+    }
 }
